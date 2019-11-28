@@ -17,7 +17,7 @@ data_generate.py：生成train/test.txt的任务。
 答：线性变换。in_features每个输入样本的大小，out_features每个输出样本的大小，bias是否加入偏值bias。
 4. nn.PReLU()与 nn.ReLU()的区别?示例中定义了很多 nn.PReLU()，能否只定义一个
 PReLU?<br>
-答：nn.ReLU()是ReLU函数，nn.PReLU()是PReLU函数，PReLU相比ReLU，在x小于等于0时y不再为0，而是一个ax，其中a是一个很小的固定值，如0.01。不能只定义一个PReLU函数。
+答：nn.ReLU()是ReLU函数，nn.PReLU()是PReLU函数，PReLU相比ReLU，在x小于等于0时y不再为0，而是一个ax，其中a是一个很小的固定值，如0.01。可以只定义一个PReLU函数，但为了forward计算一步到位，我们一般定义多个激活函数。
 5. nn.AvgPool2d()中参数含义?还有什么常用的 pooling 方式?<br>
 答：kernel_size核大小，stride步长，padding每一条边的补层数，ceil_mode计算时是否向上取整（默认向下取整），count_include_pad计算时是否包括padding, divisor_override指定除数（否则使用kernel_size作为除数）。
 6. view()的作用?<br>
