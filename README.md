@@ -22,3 +22,6 @@ PReLU?<br>
 答：kernel_size核大小，stride步长，padding每一条边的补层数，ceil_mode计算时是否向上取整（默认向下取整），count_include_pad计算时是否包括padding, divisor_override指定除数（否则使用kernel_size作为除数）。
 6. view()的作用?<br>
 答：把数据按照行优先的顺序排成一个一维的数据，然后按照参数组合成其他维度的tensor。就是将数据降到一维，做flatten操作。
+
+detector_xzq.py：网络模型与主函数程序
+data_xzq.py：数据读取与加载工具程序
