@@ -85,7 +85,7 @@ for folder in FOLDER_LIST:
             image_name = info_list[0]
             # 扩增矩形框
             expend_img = cv2.imread(os.path.join(DATA_DIR, image_name), 1)
-            w, h, channel = expend_img.shape
+            h, w, channel = expend_img.shape
             expend_x1, expend_y1, expend_x2, expend_y2, new_width, new_height = expand_roi(
                 is_bigger_zero(info_list[1]), is_bigger_zero(info_list[2]),
                 is_bigger_zero(info_list[3]), is_bigger_zero(info_list[4]),
@@ -133,6 +133,7 @@ idx = random.randint(0, len(train_test_infos))
 train_test_val = train_test_infos[idx]
 train_test = train_test_val.split(" ")
 image = cv2.imread(train_test[0], 1)
+print(train_test[0])
 # 画人脸矩形框
 cv2.rectangle(image,
               (int(train_test[1]), int(train_test[2])), (int(train_test[3]), int(train_test[4])),

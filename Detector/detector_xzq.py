@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import argparse
+from data_xzq import get_train_test_set
+import os
 
 
 class Net(nn.Module):
@@ -93,6 +95,81 @@ class Net(nn.Module):
         return result
 
 
+def train(args, train_loader, valid_loader, model, criterion, optimizer, device):
+    """
+    模型训练
+    :param args: 自定义参数
+    :param train_loader: 训练集
+    :param valid_loader: 验证集
+    :param model: 模型
+    :param criterion: 损失函数
+    :param optimizer: 优化器
+    :param device: 设备
+    :return:
+    """
+    # 如果要保存模型，设置模型保存路径
+    if args.save_model:
+        if not os.path.exists(args.save_directory):
+            os.makedirs(args.save_directory)
+    # 训练次数
+    epochs = args.epochs
+    # 损失函数
+    pts_criterion = criterion
+    # 存储训练集loss
+    train_losses = []
+    # 存储验证集loss
+    valid_losses = []
+    for epoch in range(epochs):
+        train_loss = 0.0
+        # test_loss = 0.0
+        model.train()
+        train_batch_cnt = 0
+        for batch_idx, batch in enumerate(train_loader):
+            train_batch_cnt += 1
+            img = batch['image']
+            landmark = batch['landmarks']
+            input_img = img.to(device)
+            target_pts = landmark.to(device)
+            optimizer.zero_grad()
+            output_pts = model(input_img)
+            loss = pts_criterion(output_pts, target_pts)
+            loss.backward()
+            optimizer.step()
+            train_loss += loss
+            if batch_idx % args.log_interval == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\t pts_loss: {:.6f}'.format(
+                    epoch,
+                    batch_idx * len(img),
+                    len(train_loader.dataset),
+                    100. * batch_idx / len(train_loader),
+                    loss.item())
+                )
+        train_loss /= train_batch_cnt * 1.0
+        train_losses.append(train_loss)
+        # 验证
+        valid_mean_pts_loss = 0.0
+        model.eval()
+        with torch.no_grad():
+            valid_batch_cnt = 0
+            for valid_batch_idx, batch in enumerate(valid_loader):
+                valid_batch_cnt += 1
+                valid_img = batch['image']
+                landmark = batch['landmarks']
+                input_img = valid_img.to(device)
+                target_pts = landmark.to(device)
+                output_pts = model(input_img)
+                valid_loss = pts_criterion(output_pts, target_pts)
+                valid_mean_pts_loss += valid_loss.item()
+            valid_mean_pts_loss /= valid_batch_cnt * 1.0
+            valid_losses.append(valid_mean_pts_loss)
+        # 如果需要 保存模型
+        if args.save_model:
+            save_model_name = os.path.join(args.save_directory,
+                                           'detector_epoch' + '_' + str(epoch) + '.pt')
+            torch.save(model.state_dict(), save_model_name)
+    return train_losses, valid_losses
+
+
 def main_test():
     # 参数设置部分
     # 创建解析器
@@ -133,7 +210,41 @@ def main_test():
                         help='training, predicting or finetuning')
     # 解析参数
     args = parser.parse_args()
-    print(args.seed)
+    print(args)
+
+    # 设置随机数种子
+    torch.manual_seed(args.seed)
+
+    # 设置是否使用GPU 若使用GPU设置只使用1个
+    use_cuda = not args.no_cuda and torch.cuda.is_available()
+    device = torch.device("cuda" if use_cuda else "cpu")
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+
+    # 加载数据集
+    train_set, test_set = get_train_test_set()
+    train_loader = torch.utils.data.DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
+    valid_loader = torch.utils.data.DataLoader(test_set, batch_size=args.test_batch_size)
+
+    # 构建网络模型
+    model = Net().to(device)
+    # 设置loss
+    criterion_pts = nn.MSELoss()
+    # 设置优化器
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
+    if args.phase == 'Train' or args.phase == 'train':
+        # train
+        train_losses, valid_losses = train(args, train_loader, valid_loader, model, criterion_pts, optimizer, device)
+        print(train_losses)
+        print(valid_losses)
+    elif args.phase == 'Test' or args.phase == 'test':
+        # test
+        pass
+    elif args.phase == 'Finetune' or args.phase == 'finetune':
+        # finetune
+        pass
+    elif args.phase == 'Predict' or args.phase == 'predict':
+        # predict
+        pass
 
 
 if __name__ == "__main__":
