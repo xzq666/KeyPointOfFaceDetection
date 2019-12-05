@@ -136,12 +136,11 @@ if __name__ == '__main__':
     img_test = sample_test['image']
     img_test = img_test.numpy()
     landmarks_test = sample_test['landmarks']
-    # 画关键点
+    # 请画出人脸crop以及对应的landmarks
+    # please complete your code under this blank
     for i in range(0, len(landmarks_test), 2):
         # 由于关键点坐标是相对于人脸矩形框的，绘制时需要调整
         center = (int(landmarks_test[i]), int(landmarks_test[i + 1]))
         cv2.circle(img_test, center, 1, (255, 0, 0), -1)
-    # 请画出人脸crop以及对应的landmarks
-    # please complete your code under this blank
     cv2.imshow("image", img_test)
     cv2.waitKey(0)
