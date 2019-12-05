@@ -8,7 +8,6 @@ import numpy as np
 from torch.utils.data import Dataset
 from PIL import Image
 import cv2
-import matplotlib.pyplot as plt
 import random
 
 train_boarder = 112
@@ -63,7 +62,6 @@ class ToTensor(object):
         # image = image.transpose((2, 0, 1))
         # image = np.expand_dims(image, axis=0)
         image = np.expand_dims(image, axis=2)
-        print(image.shape)
         return {'image': torch.from_numpy(image), 'landmarks': torch.from_numpy(landmarks)}
 
 
@@ -94,6 +92,13 @@ class FaceLandmarksDataset(Dataset):
         # you should let your landmarks fit to the train_boarder(112)
         # please complete your code under this blank
         # your code:
+        origin_width = rect[2] - rect[0]
+        origin_height = rect[3] - rect[1]
+        w_ratios = train_boarder / origin_width
+        h_ratios = train_boarder / origin_height
+        for k in range(0, len(landmarks), 2):
+            landmarks[k] = round(landmarks[k] * w_ratios)
+            landmarks[k + 1] = round(landmarks[k + 1] * h_ratios)
 
         sample = {'image': img_crop, 'landmarks': landmarks}
         sample = self.transform(sample)
@@ -125,11 +130,18 @@ def get_train_test_set():
 
 
 if __name__ == '__main__':
-    train_set = load_data('train')
-    sample = train_set[0]
-    img = sample['image']
-    landmarks = sample['landmarks']
+    train_sets = load_data('train')
+    idx_test = random.randint(0, len(train_sets))
+    sample_test = train_sets[idx_test]
+    img_test = sample_test['image']
+    img_test = img_test.numpy()
+    landmarks_test = sample_test['landmarks']
+    # 画关键点
+    for i in range(0, len(landmarks_test), 2):
+        # 由于关键点坐标是相对于人脸矩形框的，绘制时需要调整
+        center = (int(landmarks_test[i]), int(landmarks_test[i + 1]))
+        cv2.circle(img_test, center, 1, (255, 0, 0), -1)
     # 请画出人脸crop以及对应的landmarks
     # please complete your code under this blank
-    cv2.imshow("image", img.numpy())
+    cv2.imshow("image", img_test)
     cv2.waitKey(0)
