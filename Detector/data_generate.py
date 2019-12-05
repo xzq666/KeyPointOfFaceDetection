@@ -31,7 +31,7 @@ def is_bigger_zero(a):
     if int(float(a)) < 0:
         return 0
     else:
-        return int(float(a))
+        return round(float(a))
 
 
 def image_bgr_to_rgb(old_img):
