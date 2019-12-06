@@ -25,3 +25,15 @@ PReLU?<br>
 
 detector_xzq.py：网络模型与主函数程序
 data_xzq.py：数据读取与加载工具程序
+
+完成训练的任务
+1. optimizer.zero()与 optimizer.step()的作用是什么？<br>
+答：每次计算新的grad时，要把原来的梯度清0。optimizer.zero_grad()可以自动完成这个操作，把所有Variable的grad成员数值变为0，optimizer.step()则在每个Variable的grad都被计算出来后，更新每个Variable的数值。<br>
+2. model.eval()产生的效果?<br>
+答：model.train()启用BatchNormalization和Dropout，而model.eval()不启用BatchNormalization和Dropout。<br>
+3. model.state_dict()的目的是？<br>
+答：将每一层与它的对应参数建立映射关系。<br>
+4. 何时系统自动进行bp？<br>
+答：调用loss.backward()后并且Tensor的requires_grad为True。<br>
+5. 如果自己的层需要bp，如何实现？如何调用？<br>
+答：通过设置requires_grad参数，训练需要bp的层而冻结其他层。<br>
