@@ -56,12 +56,12 @@ class ToTensor(object):
     """
     def __call__(self, sample):
         image, landmarks = sample['image'], sample['landmarks']
+        image = np.expand_dims(image, axis=2)
         # swap color axis because
         # numpy image: H x W x C
         # torch image: C X H X W
-        # image = image.transpose((2, 0, 1))
+        image = image.transpose((2, 0, 1))
         # image = np.expand_dims(image, axis=0)
-        image = np.expand_dims(image, axis=2)
         return {'image': torch.from_numpy(image), 'landmarks': torch.from_numpy(landmarks)}
 
 
@@ -134,13 +134,21 @@ if __name__ == '__main__':
     idx_test = random.randint(0, len(train_sets))
     sample_test = train_sets[idx_test]
     img_test = sample_test['image']
+    # 将Tensor格式转换成OpenCV的图像格式
     img_test = img_test.numpy()
+    # img_test = np.squeeze(img_test, axis=(1,))
+    img_test = img_test.transpose((1, 2, 0))
+    # 调用下面的cv2.circle时
+    # 由于这里对img_test有数据操作，当传入circle函img_copy数是不连续的内存数据，
+    # 而该函数输出的内存是连续的
+    # 为了保证输入输出一致，这里调用copy()方法获取连续的内存数据img_copy
+    img_copy = img_test.copy()
     landmarks_test = sample_test['landmarks']
     # 请画出人脸crop以及对应的landmarks
     # please complete your code under this blank
     for i in range(0, len(landmarks_test), 2):
         # 由于关键点坐标是相对于人脸矩形框的，绘制时需要调整
         center = (int(landmarks_test[i]), int(landmarks_test[i + 1]))
-        cv2.circle(img_test, center, 1, (255, 0, 0), -1)
-    cv2.imshow("image", img_test)
+        cv2.circle(img_copy, center, 1, (255, 0, 0), -1)
+    cv2.imshow("image", img_copy)
     cv2.waitKey(0)

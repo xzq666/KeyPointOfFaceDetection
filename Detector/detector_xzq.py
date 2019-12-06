@@ -8,6 +8,9 @@ import torch.optim as optim
 import argparse
 from data_xzq import get_train_test_set
 import os
+import matplotlib.pyplot as plt
+
+torch.set_default_tensor_type(torch.FloatTensor)
 
 
 class Net(nn.Module):
@@ -170,6 +173,20 @@ def train(args, train_loader, valid_loader, model, criterion, optimizer, device)
     return train_losses, valid_losses
 
 
+def show_train_and_val_loss(train_loss_result, val_loss_result, num_epoches):
+    x = range(0, num_epoches)
+    # 生成训练集与验证集上的loss对比图
+    y1 = val_loss_result
+    y2 = train_loss_result
+    plt.plot(x, y1, color="r", linestyle="-", marker="o", linewidth=1, label="val")
+    plt.plot(x, y2, color="b", linestyle="-", marker="o", linewidth=1, label="train")
+    plt.legend()
+    plt.title('train and val loss vs. epoches')
+    plt.ylabel('loss')
+    plt.savefig("train and val loss vs epoches.jpg")
+    plt.close('all')
+
+
 def main_test():
     # 参数设置部分
     # 创建解析器
@@ -234,8 +251,7 @@ def main_test():
     if args.phase == 'Train' or args.phase == 'train':
         # train
         train_losses, valid_losses = train(args, train_loader, valid_loader, model, criterion_pts, optimizer, device)
-        print(train_losses)
-        print(valid_losses)
+        show_train_and_val_loss(train_losses, valid_losses, args.epochs)
     elif args.phase == 'Test' or args.phase == 'test':
         # test
         pass
