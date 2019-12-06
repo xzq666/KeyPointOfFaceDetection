@@ -28,10 +28,14 @@ def is_bigger_zero(a):
     :param a:
     :return:
     """
-    if int(float(a)) < 0:
+    # if int(float(a)) < 0:
+    #     return 0
+    # else:
+    #     return round(float(a))
+    if float(a) < 0:
         return 0
     else:
-        return round(float(a))
+        return float(a)
 
 
 def image_bgr_to_rgb(old_img):
@@ -136,12 +140,14 @@ image = cv2.imread(train_test[0], 1)
 print(train_test[0])
 # 画人脸矩形框
 cv2.rectangle(image,
-              (int(train_test[1]), int(train_test[2])), (int(train_test[3]), int(train_test[4])),
+              (int(float(train_test[1])), int(float(train_test[2]))),
+              (int(float(train_test[3])), int(float(train_test[4]))),
               (0, 255, 0), thickness=2)
 # 画关键点
 for i in range(0, len(train_test)-5, 2):
     # 由于关键点坐标是相对于人脸矩形框的，绘制时需要调整
-    center = (int(train_test[i+5])+int(train_test[1]), int(train_test[i+1+5])+int(train_test[2]))
+    center = (int(float(train_test[i+5]))+int(float(train_test[1])),
+              int(float(train_test[i+1+5]))+int(float(train_test[2])))
     cv2.circle(image, center, 2, (0, 0, 255), -1)
 image_new = image_bgr_to_rgb(image)
 plt.imshow(image_new)
