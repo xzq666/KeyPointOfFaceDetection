@@ -2,12 +2,12 @@
 # Author: xzq
 # Date: 2019-11-26 18:04
 
-from random import shuffle
+import numpy as np
 
-arr = ["../Data/I/01.jpg 122 34 256 178 422",
-       "../Data/I/02.jpg 12 44 516 718 22",
-       "../Data/I/03.jpg 16 36 546 78 222",
-       "../Data/I/04.jpg 14 5 56 78 232"]
-shuffle(arr)
-
-print(arr)
+arr = np.random.rand(112, 112, 1)
+print("----------------")
+img = arr.transpose((2, 0, 1))
+img = np.expand_dims(img, axis=0)
+img_test = np.squeeze(img, axis=(1,))
+img_test = img_test.transpose((1, 2, 0))
+print(img_test == arr)
