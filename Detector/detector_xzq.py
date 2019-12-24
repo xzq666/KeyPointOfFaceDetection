@@ -13,7 +13,6 @@ import numpy as np
 import cv2
 from PIL import Image
 from torch.utils.data import Dataset
-from torchvision import transforms
 
 torch.set_default_tensor_type(torch.FloatTensor)
 
