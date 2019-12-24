@@ -179,7 +179,7 @@ def train(args, train_loader, valid_loader, model, criterion, optimizer, device)
     # 如果需要 保存模型
     if args.save_model:
         save_model_name = os.path.join(args.save_directory,
-                                       'detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5)_finetune.pt')
+                                       'detector_MSELOSS_SGD_(batch_size=10)_(lr=0.000001)_(momentum=0.5)_finetune.pt')
         torch.save(model.state_dict(), save_model_name)
     return train_losses, valid_losses
 
@@ -239,23 +239,12 @@ def predict(img_name, model):
         cv2.waitKey(0)
 
 
-def finetune():
-    # 这里只加载已训练的模型的参数
-    pretrained_dict = torch.load(
-        './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt')
-    net = Net()
-    net_state_dict = net.state_dict()
-    # 接着将pretrained_dict里不属于net_state_dict的键剔除掉：
-    pretrained_dict_1 = {k: v for k, v in pretrained_dict.items() if k in net_state_dict}
-    # 然后，用预训练模型的参数字典对新模型的参数字典net_state_dict进行更新
-    net_state_dict.update(pretrained_dict_1)
-    # 最后将更新了参数的字典“放”回到网络中完成初始化
-    net.load_state_dict(net_state_dict)
+def finetune(net):
     ignored_params = list(map(id, net.landmarks.parameters()))  # 返回的是parameters的 内存地址
     base_params = filter(lambda p: id(p) not in ignored_params, net.parameters())
-    optimizer = optim.SGD([{'params': base_params}, {'params': net.landmarks.parameters(), 'lr': 0.000001}],
-                          0.00001, momentum=0.5, weight_decay=1e-4)
-    return optimizer
+    optimizer_new = optim.SGD([{'params': base_params}, {'params': net.landmarks.parameters(), 'lr': 0.00001}],
+                              0.000001, momentum=0.5, weight_decay=1e-4)
+    return optimizer_new
 
 
 def show_train_and_val_loss(train_loss_result, val_loss_result, num_epoches):
@@ -268,7 +257,7 @@ def show_train_and_val_loss(train_loss_result, val_loss_result, num_epoches):
     plt.legend()
     plt.title('train and val loss vs. epoches')
     plt.ylabel('loss')
-    plt.savefig("train and val loss vs epoches.jpg")
+    plt.savefig("train and val loss vs epoches-finetune.jpg")
     plt.close('all')
 
 
@@ -344,8 +333,13 @@ def main_test():
         print("Test平均loss：{}".format(test_mean_loss))
     elif args.phase == 'Finetune' or args.phase == 'finetune':
         # finetune
-        optimizer = finetune()
-        train_losses, valid_losses = train(args, train_loader, valid_loader, model, criterion_pts, optimizer, device)
+        model.load_state_dict(torch.load(
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+        for para in list(model.parameters())[:-2]:
+            para.requires_grad = False
+        optimizer_new = finetune(model)
+        train_losses, valid_losses = train(args, train_loader, valid_loader, model, criterion_pts, optimizer_new,
+                                           device)
         show_train_and_val_loss(train_losses, valid_losses, args.epochs)
     elif args.phase == 'Predict' or args.phase == 'predict':
         # predict
