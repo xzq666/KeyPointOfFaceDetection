@@ -37,3 +37,11 @@ data_xzq.py：数据读取与加载工具程序
 答：调用loss.backward()后并且Tensor的requires_grad为True。<br>
 5. 如果自己的层需要bp，如何实现？如何调用？<br>
 答：通过设置requires_grad参数，训练需要bp的层而冻结其他层。<br>
+
+stage2
+任务一：做数据增广时，发现翻转与旋转的效果不佳。利用图像饱和度做数据增广。
+任务二：优化器选用Adam，并在网络中加入BN。
+任务三：换ResNet18进行训练，最后的fc层需要改成42输出。
+
+stage3
+生成非人脸数据，认为与人脸重叠部分的iou<0.3的就是非人脸。
