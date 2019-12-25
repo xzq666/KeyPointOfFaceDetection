@@ -127,12 +127,15 @@ def predict(img_name, model):
     img = cv2.imread(img_name, 1)
     face_cascade = cv2.CascadeClassifier('./detector_architectures/haarcascade_frontalface_default.xml')
     faces = face_cascade.detectMultiScale(img, 1.2, 2)
+    model.eval()
     if len(faces) > 0:
         # 只截取一个人脸
         (x, y, w, h) = faces[0]
         rect = [x, y, x + w, y + h]
         img = Image.open(img_name).convert('L')
         face_image = img.crop(tuple(rect))
+        face_image = np.expand_dims(face_image, axis=2)
+        face_image = cv2.resize(face_image, (32, 32))
         face_image = np.expand_dims(face_image, axis=2)
         face_image = cv2.cvtColor(face_image, cv2.COLOR_GRAY2BGR)
         show_image = face_image
