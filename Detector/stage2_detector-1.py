@@ -180,7 +180,7 @@ def train(args, train_loader, valid_loader, model, criterion, optimizer, device)
     # 如果需要 保存模型
     if args.save_model:
         save_model_name = os.path.join(args.save_directory,
-                                       'detector_MSELOSS_SGD_(batch_size=10)_(lr=0.000001)_(momentum=0.5)_finetune.pt')
+                                       'detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_stage2-1-finetune.pt')
         torch.save(model.state_dict(), save_model_name)
     return train_losses, valid_losses
 
@@ -197,6 +197,7 @@ def test(test_loader, model, criterion):
     for batch_idx, batch in enumerate(test_loader):
         count += 1
         imgs = batch['image']
+        imgs = imgs.type(torch.FloatTensor)
         landmarks = batch['landmarks']
         # 前向传播
         output_pts = model(imgs)
@@ -223,10 +224,14 @@ def predict(img_name, model):
         img = Image.open(img_name).convert('L')
         face_image = img.crop(tuple(rect))
         face_image = np.expand_dims(face_image, axis=2)
+        face_image = cv2.resize(face_image, (112, 112))
+        face_image = np.expand_dims(face_image, axis=2)
         show_image = face_image
+        show_image = cv2.resize(show_image, (112, 112))
         face_image = face_image.transpose((2, 0, 1))
         face_image = np.expand_dims(face_image, axis=0)
         face_image = torch.from_numpy(face_image)
+        face_image = face_image.type(torch.FloatTensor)
         output_pts = model(face_image)
         output_pts = output_pts.detach().numpy()
         output_pts = output_pts[0]
@@ -256,7 +261,7 @@ def show_train_and_val_loss(train_loss_result, val_loss_result, num_epoches):
     plt.legend()
     plt.title('train and val loss vs. epoches')
     plt.ylabel('loss')
-    plt.savefig("train and val loss vs epoches-stage2-1.jpg")
+    plt.savefig("train and val loss vs epoches-stage2-1-finetune.jpg")
     plt.close('all')
 
 
@@ -327,13 +332,13 @@ def main_test():
     elif args.phase == 'Test' or args.phase == 'test':
         # test
         model.load_state_dict(torch.load(
-            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_stage2-1.pt'))
         test_mean_loss = test(valid_loader, model, criterion_pts)
         print("Test平均loss：{}".format(test_mean_loss))
     elif args.phase == 'Finetune' or args.phase == 'finetune':
         # finetune
         model.load_state_dict(torch.load(
-            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_stage2-1.pt'))
         for para in list(model.parameters())[:-2]:
             para.requires_grad = False
         optimizer_new = finetune(model)
@@ -343,7 +348,7 @@ def main_test():
     elif args.phase == 'Predict' or args.phase == 'predict':
         # predict
         model.load_state_dict(torch.load(
-            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_stage2-1-finetune.pt'))
         predict("../Data/Predict/predict.jpg", model)
 
 
