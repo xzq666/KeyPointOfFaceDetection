@@ -178,7 +178,7 @@ def train(args, train_loader, valid_loader, model, criterion, optimizer, device)
     # 如果需要 保存模型
     if args.save_model:
         save_model_name = os.path.join(args.save_directory,
-                                       'detector_MSELOSS_SGD_(batch_size=10)_(lr=0.000001)_(momentum=0.5)_finetune.pt')
+                                       'detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)-finetune.pt')
         torch.save(model.state_dict(), save_model_name)
     return train_losses, valid_losses
 
@@ -327,13 +327,13 @@ def main_test():
     elif args.phase == 'Test' or args.phase == 'test':
         # test
         model.load_state_dict(torch.load(
-            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001).pt'))
         test_mean_loss = test(valid_loader, model, criterion_pts)
         print("Test平均loss：{}".format(test_mean_loss))
     elif args.phase == 'Finetune' or args.phase == 'finetune':
         # finetune
         model.load_state_dict(torch.load(
-            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001).pt'))
         for para in list(model.parameters())[:-2]:
             para.requires_grad = False
         optimizer_new = finetune(model)
@@ -343,7 +343,7 @@ def main_test():
     elif args.phase == 'Predict' or args.phase == 'predict':
         # predict
         model.load_state_dict(torch.load(
-            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)_(momentum=0.5).pt'))
+            './trained_models/detector_MSELOSS_SGD_(batch_size=10)_(lr=0.00001)-finetune.pt'))
         predict("../Data/Predict/predict.jpg", model)
 
 
