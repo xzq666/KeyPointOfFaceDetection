@@ -10,7 +10,8 @@ from PIL import Image
 import cv2
 import random
 
-train_boarder = 112
+# train_boarder = 112
+train_boarder = 224
 
 
 def parse_line(line):
@@ -79,6 +80,8 @@ class ToTensor(object):
         image = np.expand_dims(image, axis=2)
         image = cv2.resize(image, (train_boarder, train_boarder))
         image = np.expand_dims(image, axis=2)
+        # 使用ResNet18时需要将图像转为彩色图
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
         image = image.transpose((2, 0, 1))
         return {'image': torch.from_numpy(image), 'landmarks': torch.from_numpy(landmarks),
                 'face': int(face)}
